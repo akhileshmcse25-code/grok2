@@ -1,0 +1,445 @@
+ASTRONAUT SCROLL ANIMATION — CLEAN REFERENCE NOTES FOR GROK
+============================================================
+
+PURPOSE
+-------
+Use this file as the cleaned technical brief and starter code for building a polished
+3D astronaut background animation controlled by page scrolling.
+
+IMPORTANT SOURCE NOTE
+--------------------
+The original extracted source was a bundled/minified web build, not the complete
+original project source. The values and scroll effects below were identifiable in
+the extracted material. The React component is a clean reference implementation
+based on those details, not a byte-for-byte recovery of the original source.
+
+TECH STACK
+----------
+- React + TypeScript
+- Three.js
+- @react-three/fiber
+- @react-three/drei (useGLTF)
+- GSAP + ScrollTrigger
+- CSS for decorative background layers
+- The astronaut model is expected at: /ca/AstronautModel.glb
+
+INSTALL DEPENDENCIES
+--------------------
+npm install three @react-three/fiber @react-three/drei gsap
+
+1. ASTRONAUT CONFIGURATION
+--------------------------
+File: astronaut.config.ts
+
+export const ASTRONAUT_CONFIG = {
+  modelPath: "/ca/AstronautModel.glb",
+
+  scale: 1.2,
+  positionY: -2.5,
+  startX: 3,
+  endX: -3,
+
+  cameraZ: 6,
+  cameraY: 0.5,
+  fov: 50,
+
+  initialRotationY: 0.2 * Math.PI,
+  initialRotationX: 0.1,
+  rotationMultiplierY: 2 * Math.PI,
+  rotationMultiplierX: 0.3,
+
+  floatAmplitude: 0.1,
+  floatSpeed: 0.8,
+
+  ambientIntensity: 0.6,
+  mainLightIntensity: 1.5,
+  rimLightIntensity: 0.8,
+} as const;
+
+
+2. CORE ASTRONAUT COMPONENT
+---------------------------
+File: Astronaut3D.tsx
+
+This component expects the model file to exist at public/ca/AstronautModel.glb.
+If the model is stored somewhere else, change modelPath in the configuration.
+
+import { Suspense, useEffect, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ASTRONAUT_CONFIG as CONFIG } from "./astronaut.config";
+
+gsap.registerPlugin(ScrollTrigger);
+
+function AstronautModel({
+  progressRef,
+}: {
+  progressRef: React.MutableRefObject<number>;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const { scene } = useGLTF(CONFIG.modelPath);
+
+  useFrame(({ clock }) => {
+    const group = groupRef.current;
+    if (!group) return;
+
+    const progress = progressRef.current;
+    const elapsed = clock.getElapsedTime();
+
+    // Horizontal travel as the visitor scrolls down the page.
+    group.position.x =
+      CONFIG.startX + progress * (CONFIG.endX - CONFIG.startX);
+
+    // Full turn plus a small additional rotation on the X axis.
+    group.rotation.y =
+      CONFIG.initialRotationY + progress * CONFIG.rotationMultiplierY;
+    group.rotation.x =
+      CONFIG.initialRotationX + progress * CONFIG.rotationMultiplierX;
+
+    // Gentle idle floating motion.
+    group.position.y =
+      CONFIG.positionY +
+      Math.sin(elapsed * CONFIG.floatSpeed) * CONFIG.floatAmplitude;
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      scale={CONFIG.scale}
+      position={[CONFIG.startX, CONFIG.positionY, 0]}
+    >
+      <primitive object={scene} />
+    </group>
+  );
+}
+
+function Scene({
+  progressRef,
+}: {
+  progressRef: React.MutableRefObject<number>;
+}) {
+  return (
+    <>
+      <ambientLight intensity={CONFIG.ambientIntensity} />
+
+      <directionalLight
+        position={[4, 5, 5]}
+        intensity={CONFIG.mainLightIntensity}
+      />
+
+      <pointLight
+        position={[-4, 1, -3]}
+        intensity={CONFIG.rimLightIntensity}
+        color="#8abaff"
+      />
+
+      <Suspense fallback={null}>
+        <AstronautModel progressRef={progressRef} />
+      </Suspense>
+    </>
+  );
+}
+
+export default function Astronaut3D() {
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    const trigger = ScrollTrigger.create({
+      trigger: document.documentElement,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1,
+      onUpdate: (self) => {
+        progressRef.current = self.progress;
+      },
+    });
+
+    return () => {
+      trigger.kill();
+    };
+  }, []);
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+      }}
+    >
+      <Canvas
+        camera={{
+          position: [0, CONFIG.cameraY, CONFIG.cameraZ],
+          fov: CONFIG.fov,
+        }}
+        dpr={[1, 2]}
+        gl={{ alpha: true, antialias: true }}
+      >
+        <Scene progressRef={progressRef} />
+      </Canvas>
+    </div>
+  );
+}
+
+useGLTF.preload(ASTRONAUT_CONFIG.modelPath);
+
+
+3. DECORATIVE SCROLL ANIMATION LOGIC
+------------------------------------
+These are the scroll effects identified in the extracted bundle. Apply them only if
+matching elements exist in the page markup. They are decorative background layers,
+separate from the astronaut's 3D movement.
+
+File: backgroundScroll.ts
+
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+export function initBackgroundScrollAnimations() {
+  const animations: gsap.core.Tween[] = [];
+
+  const addYAnimation = (
+    selector: string,
+    y: number,
+    scrub: number
+  ) => {
+    if (!document.querySelector(selector)) return;
+
+    animations.push(
+      gsap.to(selector, {
+        y,
+        ease: "none",
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: "top top",
+          end: "bottom bottom",
+          scrub,
+        },
+      })
+    );
+  };
+
+  // Parallax depth layers
+  addYAnimation(".orb-deep", -300, 2);
+  addYAnimation(".orb-mid", -180, 1.2);
+  addYAnimation(".orb-near", -100, 0.8);
+
+  if (document.querySelector(".morph-shape")) {
+    animations.push(
+      gsap.to(".morph-shape", {
+        rotation: 180,
+        scale: 1.2,
+        borderRadius: "50%",
+        ease: "none",
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 1.5,
+        },
+      })
+    );
+  }
+
+  if (document.querySelector(".ethereal-ring")) {
+    animations.push(
+      gsap.to(".ethereal-ring", {
+        scale: 2,
+        opacity: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: "top top",
+          end: "50% top",
+          scrub: true,
+        },
+      })
+    );
+  }
+
+  if (document.querySelector(".geo-pattern-1")) {
+    animations.push(
+      gsap.to(".geo-pattern-1", {
+        rotation: 360,
+        ease: "none",
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 4,
+        },
+      })
+    );
+  }
+
+  if (document.querySelector(".geo-pattern-2")) {
+    animations.push(
+      gsap.to(".geo-pattern-2", {
+        rotation: -360,
+        ease: "none",
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 6,
+        },
+      })
+    );
+  }
+
+  document.querySelectorAll<HTMLElement>(".drift-particle").forEach(
+    (particle, index) => {
+      const direction = index % 2 === 0 ? 1 : -1;
+
+      animations.push(
+        gsap.to(particle, {
+          y: -200 - 50 * index,
+          x: direction * 30,
+          ease: "none",
+          scrollTrigger: {
+            trigger: document.documentElement,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1 + 0.3 * index,
+          },
+        })
+      );
+    }
+  );
+
+  return () => {
+    animations.forEach((animation) => {
+      animation.scrollTrigger?.kill();
+      animation.kill();
+    });
+  };
+}
+
+
+4. OPTIONAL CSS STARTER FOR DECORATIVE LAYERS
+---------------------------------------------
+File: background.css
+
+/* Keep the 3D canvas behind content and let clicks pass through it. */
+.astronaut-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Put page content above the canvas. */
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Example decorative layers; style and position to match the design. */
+.orb-deep,
+.orb-mid,
+.orb-near,
+.morph-shape,
+.ethereal-ring,
+.geo-pattern-1,
+.geo-pattern-2,
+.drift-particle,
+.nebula-layer-1,
+.nebula-layer-2,
+.aurora-wave,
+.cosmic-dust {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Replace these simple examples with the actual design's gradients/textures. */
+.orb-deep {
+  width: 28rem;
+  height: 28rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(83, 104, 255, 0.22), transparent 70%);
+  filter: blur(12px);
+}
+
+.orb-mid {
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(60, 190, 255, 0.16), transparent 70%);
+}
+
+.orb-near {
+  width: 12rem;
+  height: 12rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 70%);
+}
+
+
+5. HOW SCROLL PROGRESS CONTROLS THE ASTRONAUT
+--------------------------------------------
+progress is a number from 0 to 1:
+- 0 means the top of the page.
+- 1 means the bottom of the page.
+
+Horizontal movement:
+  x = startX + progress * (endX - startX)
+
+Rotation:
+  rotationY = initialRotationY + progress * rotationMultiplierY
+  rotationX = initialRotationX + progress * rotationMultiplierX
+
+Floating:
+  y = positionY + sin(elapsedTime * floatSpeed) * floatAmplitude
+
+The floating motion uses elapsed time, so it continues even when the page is not
+scrolling. Scroll movement and rotation are tied to scroll progress.
+
+
+6. IMPORTANT IMPLEMENTATION NOTES
+---------------------------------
+- Put AstronautModel.glb at public/ca/AstronautModel.glb, or update modelPath.
+- Ensure the model's scale, origin, and orientation look correct. GLB models can
+  have different origins, so the initial position may need adjustment.
+- If React Strict Mode or hot reload creates duplicate triggers in your app, make
+  sure cleanup is working and avoid initializing the same animation twice.
+- If the page is short or has no scrollable height, ScrollTrigger progress may not
+  change meaningfully. The page needs enough height to scroll.
+- A fixed full-screen Canvas can be expensive on mobile; consider reducing DPR or
+  conditionally disabling the effect on low-powered devices.
+- This reference code does not prove that the original website used this exact
+  component structure. Treat it as a clean implementation starting point.
+- The extracted source did not establish any scroll-driven scale animation or
+  named animation clips inside the GLB. Do not assume those exist without checking
+  the actual model or original source.
+
+
+7. PROMPT TO GIVE GROK
+----------------------
+Using the cleaned source notes and code in this file, help me recreate the original
+3D astronaut scroll-animation background as accurately as possible.
+
+Requirements:
+1. Preserve the identified configuration values and scroll behavior.
+2. Use React + TypeScript, Three.js, React Three Fiber, Drei, GSAP, and ScrollTrigger.
+3. The astronaut model is located at /ca/AstronautModel.glb unless I specify otherwise.
+4. The astronaut should move horizontally from x = 3 to x = -3 as scroll progress goes
+   from 0 to 1, rotate according to the provided multipliers, and float gently.
+5. Recreate the decorative parallax effects for the listed CSS selectors where useful.
+6. Make the result responsive, performant, and easy to integrate into an existing page.
+7. Separate code into complete files and explain where each file belongs.
+8. Identify and fix TypeScript, React, Three.js, and GSAP issues rather than inventing
+   missing original behavior.
+9. Clearly label any design decisions or assumptions that cannot be confirmed from
+   the extracted source.
+10. Ask me for the original page screenshot or project structure only if needed to
+    resolve a genuine ambiguity.
+
+Return complete, working code and setup instructions. Do not merely describe the code.

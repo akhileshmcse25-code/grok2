@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Kashi Yatra CA",
+      "hasCanvas": false,
+      "bodyTextLen": 1440,
+      "bodyTextHash": "674f1f9c84917c9d936edff638c685c956516addccbbdb6c999eeae9e72596d0",
+      "bodyTextPrefix": "IIT BHU · KASHI YATRA Campus Ambassador Be the face of your coll",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Kashi Yatra CA",
+      "hasCanvas": false,
+      "bodyTextLen": 1440,
+      "bodyTextHash": "674f1f9c84917c9d936edff638c685c956516addccbbdb6c999eeae9e72596d0",
+      "bodyTextPrefix": "IIT BHU · KASHI YATRA Campus Ambassador Be the face of your coll",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
