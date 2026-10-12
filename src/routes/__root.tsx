@@ -36,6 +36,11 @@ export const Route = createRootRoute({
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `fetch("/models/astronaut.glb",{cache:"force-cache",priority:"high"})`,
+          }}
+        />
       </head>
       <body>
         <PreviewHostBridge />

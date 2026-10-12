@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { type Group } from "three";
 import { ASTRONAUT, LIGHTS, MODEL_URL } from "@/lib/astronaut";
 
@@ -15,8 +15,7 @@ function readScrollProgress() {
 }
 
 function Suit() {
-  const { scene: original } = useGLTF(MODEL_URL);
-  const scene = useMemo(() => original.clone(true), [original]);
+  const { scene } = useGLTF(MODEL_URL);
   const group = useRef<Group>(null);
   const target = useRef(0);
   const smooth = useRef(0);
@@ -27,10 +26,11 @@ function Suit() {
       target.current = readScrollProgress();
     };
     read();
-    window.addEventListener("scroll", read, { passive: true });
+    const port = document.querySelector(".scrollport");
+    port?.addEventListener("scroll", read, { passive: true });
     window.addEventListener("resize", read);
     return () => {
-      window.removeEventListener("scroll", read);
+      port?.removeEventListener("scroll", read);
       window.removeEventListener("resize", read);
     };
   }, []);

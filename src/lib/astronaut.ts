@@ -15,7 +15,7 @@ export const ASTRONAUT = {
   ambientIntensity: 0.6,
   mainLightIntensity: 1.5,
   rimLightIntensity: 0.8,
-  scrub: 0.35,
+  scrub: 0.08,
 } as const;
 
 export const LIGHTS = {
