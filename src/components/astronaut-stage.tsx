@@ -5,6 +5,11 @@ import { type Group } from "three";
 import { ASTRONAUT, LIGHTS, MODEL_URL } from "@/lib/astronaut";
 
 function readScrollProgress() {
+  const port = document.querySelector(".scrollport");
+  if (port instanceof HTMLElement) {
+    const max = port.scrollHeight - port.clientHeight;
+    if (max > 0) return port.scrollTop / max;
+  }
   const max = document.documentElement.scrollHeight - window.innerHeight;
   return max > 0 ? window.scrollY / max : 0;
 }
@@ -33,6 +38,7 @@ function Suit() {
   useFrame((state, delta) => {
     const g = group.current;
     if (!g) return;
+    target.current = readScrollProgress();
     const dt = Math.min(delta, 0.05);
     const k = 1 - Math.exp(-dt / ASTRONAUT.scrub);
     smooth.current += (target.current - smooth.current) * k;

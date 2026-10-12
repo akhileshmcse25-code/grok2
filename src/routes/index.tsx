@@ -5,14 +5,17 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   return (
-    <main className="stage">
+    <>
       <div className="cosmic" aria-hidden="true">
         <div className="nebula nebula-a" />
         <div className="nebula nebula-b" />
         <div className="vignette" />
       </div>
       <AstronautStage />
-      <div className="runway" />
-    </main>
+      <p className="hint">Scroll down</p>
+      <main className="scrollport">
+        <div className="runway" />
+      </main>
+    </>
   );
 }

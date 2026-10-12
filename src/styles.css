@@ -16,17 +16,13 @@
     cursor: pointer;
   }
 
-  html {
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
     background: var(--color-bg);
     color: var(--color-fg);
-    scroll-behavior: smooth;
-  }
-
-  body {
-    margin: 0;
-    min-height: 100%;
-    overflow-x: hidden;
-    background: var(--color-bg);
     font-family: var(--font-sans);
   }
 }
@@ -94,6 +90,31 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.hint {
+  position: fixed;
+  z-index: 3;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.scrollport {
+  position: relative;
+  z-index: 2;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.runway {
+  height: 500vh;
 }
 
 .panel {
